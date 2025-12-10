@@ -106,8 +106,21 @@ const CHARS: &[char] = &[
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
 
-pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
-pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+// pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
+// pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+// read from env
+lazy_static::lazy_static! {
+    pub static ref RENDEZVOUS_SERVERS: Vec<String> = {
+        let servers = std::env::var("RENDEZVOUS_SERVERS")
+            .unwrap_or_else(|_| "rs-ny.rustdesk.com".to_string());
+        servers.split(',').map(|s| s.trim().to_string()).collect()
+    };
+    
+    pub static ref RS_PUB_KEY: String = {
+        std::env::var("RS_PUB_KEY")
+            .unwrap_or_else(|_| "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=".to_string())
+    };
+}
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
 pub const RELAY_PORT: i32 = 21117;
@@ -788,7 +801,9 @@ impl Config {
                 return ss;
             }
         }
-        return RENDEZVOUS_SERVERS.iter().map(|x| x.to_string()).collect();
+        //return RENDEZVOUS_SERVERS.iter().map(|x| x.to_string()).collect();
+        // read from lazy_static
+        return RENDEZVOUS_SERVERS.iter().map(|x| x.clone()).collect();
     }
 
     pub fn reset_online() {
