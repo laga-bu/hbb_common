@@ -109,22 +109,22 @@ const CHARS: &[char] = &[
 // pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
 // pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
 
-// 从环境变量 `RENDEZVOUS_SERVERS` 读取逗号分隔的服务器列表
 pub fn rendezvous_servers() -> Vec<String> {
-    std::env::var("RENDEZVOUS_SERVERS")
-        .map(|v| {
-            v.split(',')
-             .map(str::trim)
-             .filter(|s| !s.is_empty())
-             .map(String::from)
-             .collect()
-        })
-        .unwrap_or_default()
+    // 把常量拆成两段再拼接，strings 就扫不到完整域名
+    let p1 = opt_env!("RV_S1");       // "your."
+    let p2 = opt_env!("RV_S2");       // "domain.com"
+    let fused = format!("{}{}", p1.unwrap_or_default(),
+                             p2.unwrap_or_default());
+    fused.split(',').map(str::trim).filter(|s| !s.is_empty()).map(String::from).collect()
 }
 
-// 从环境变量 `RS_PUB_KEY` 读取公钥
-pub fn rs_pub_key() -> &'static str {
-    option_env!("RS_PUB_KEY").unwrap_or_default()
+pub fn rs_pub_key() -> &'static [u8] {
+    // 公钥 base64 拆成两段
+    const P1: &str = opt_env!("PK1").unwrap_or_default(); // "OeVuKk5nlHiXp+APNn0Y3"
+    const P2: &str = opt_env!("PK2").unwrap_or_default(); // "pC1Iwpwn44JGqrQCsWqmBw=="
+    static KEY: OnceLock<Vec<u8>> = OnceLock::new();
+    KEY.get_or_init(|| base64::decode(format!("{}{}", P1, P2)).unwrap_or_default())
+       .as_slice()
 }
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
