@@ -806,7 +806,8 @@ impl Config {
                 return ss;
             }
         }
-        return rendezvous_servers().iter().map(|x| x.to_string()).collect();
+        // 不再提供任何默认域名，没填 Secrets 就返回空 Vec
+        Vec::new()
     }
 
     pub fn reset_online() {
